@@ -16,4 +16,10 @@
 #define SPEED_MEDIUM 2
 #define SPEED_SLOW   4
 
+/* Número de cruzamentos com semáforo no mapa */
+#define NUM_INTERSECTIONS 8
+
+/* ID reservado para a ambulância */
+#define AMBULANCE_ID 0
+
 #endif

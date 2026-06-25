@@ -1,0 +1,22 @@
+# Compilados e Objetos
+build/
+-p/
+simulador
+simulador.exe
+test_traffic_light
+test_traffic_light.exe
+*.o
+*.exe
+*.out
+
+# Configurações de IDEs e Editores
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln
+*.vcxproj
+
+# Arquivos de Sistema
+.DS_Store
+Thumbs.db
