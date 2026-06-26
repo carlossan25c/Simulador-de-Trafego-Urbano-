@@ -25,4 +25,13 @@
 /* ID reservado para a ambulância */
 #define AMBULANCE_ID 0
 
+/* Tipos de célula */
+#define CELL_WALL         0
+#define CELL_ROAD         1
+#define CELL_INTERSECTION 2
+
+/* Direções de via (cell.direction) — distintas das direções de movimento */
+#define DIR_HORIZONTAL 4  /* mão dupla: leste e oeste permitidos */
+#define DIR_VERTICAL   5  /* mão dupla: norte e sul permitidos */
+
 #endif
