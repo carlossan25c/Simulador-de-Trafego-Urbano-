@@ -16,4 +16,13 @@
 #define SPEED_MEDIUM 2
 #define SPEED_SLOW   4
 
+/* Direções de movimento */
+#define DIR_NORTH 0
+#define DIR_SOUTH 1
+#define DIR_EAST  2
+#define DIR_WEST  3
+
+/* ID reservado para a ambulância */
+#define AMBULANCE_ID 0
+
 #endif
