@@ -11,3 +11,5 @@ long  clock_get_tick(SimClock *clk);
 void  clock_wait_tick(SimClock *clk, long last_tick);
 
 #endif
+
+
