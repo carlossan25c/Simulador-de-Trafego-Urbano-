@@ -1,3 +1,8 @@
 .vscode/
-.vscode/
-.vscode/
+
+# Binários compilados
+simulador
+simulador.exe
+build/
+tests/*.exe
+tests/*.o
