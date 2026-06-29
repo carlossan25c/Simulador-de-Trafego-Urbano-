@@ -1,8 +1,21 @@
-.vscode/
-
-# Binários compilados
+# Compilados e Objetos
+build/
 simulador
 simulador.exe
-build/
-tests/*.exe
-tests/*.o
+test_traffic_light
+test_traffic_light.exe
+*.o
+*.exe
+*.out
+
+# Configurações de IDEs e Editores
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln
+*.vcxproj
+
+# Arquivos de Sistema
+.DS_Store
+Thumbs.db

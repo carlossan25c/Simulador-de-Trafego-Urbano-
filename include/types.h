@@ -43,6 +43,7 @@ typedef struct {
     int state_vertical;   /* estado do sinal para a via vertical */
     int green_duration;   /* duração do verde em ticks */
     int red_duration;     /* duração do vermelho em ticks */
+    int elapsed_ticks;    /* ticks transcorridos desde o último ciclo/reset */
     pthread_mutex_t mutex;
     pthread_cond_t  cond;
 } TrafficLight;

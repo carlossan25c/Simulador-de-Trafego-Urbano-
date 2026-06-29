@@ -16,6 +16,8 @@
 #define SPEED_MEDIUM 2
 #define SPEED_SLOW   4
 
+/* Número de cruzamentos com semáforo no mapa */
+#define NUM_INTERSECTIONS 8
 /* Direções de movimento */
 #define DIR_NORTH 0
 #define DIR_SOUTH 1
