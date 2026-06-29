@@ -1,6 +1,5 @@
 # Compilados e Objetos
 build/
--p/
 simulador
 simulador.exe
 test_traffic_light

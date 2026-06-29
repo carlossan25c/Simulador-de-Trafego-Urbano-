@@ -5,15 +5,6 @@
 #include "types.h"
 #include "constants.h"
 
-/* Constantes de direção */
-#define DIR_NORTH 0
-#define DIR_SOUTH 1
-#define DIR_EAST  2
-#define DIR_WEST  3
-
-/* ID reservado para ambulância */
-#define AMBULANCE_ID 0
-
 /* Struct de argumentos passados para a thread do veículo */
 typedef struct {
     Vehicle      *vehicle;
