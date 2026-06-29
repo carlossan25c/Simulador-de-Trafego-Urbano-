@@ -2,53 +2,103 @@
 
 Trabalho da disciplina de **Sistemas Operacionais** da UFCA.
 
-O objetivo é simular o tráfego de uma cidade em miniatura usando **threads** e **sincronização** em C. Cada veículo é uma thread que se move por um mapa de ruas, respeita semáforos e compete por espaço nas células da via.
+Simulação concorrente de tráfego urbano em C, na qual veículos são representados por threads e competem por espaços de uma malha viária. O projeto demonstra na prática os conceitos de concorrência, exclusão mútua, espera bloqueante, variáveis de condição e prevenção de deadlocks.
 
-## O que o projeto deve ter
+Repositório: https://github.com/carlossan25c/Simulador-de-Trafego-Urbano-
 
-- Entre 10 e 20 veículos rodando ao mesmo tempo, cada um como uma thread
-- Uma ambulância com prioridade nos cruzamentos
-- Semáforos em todos os cruzamentos, com veículos bloqueando no vermelho sem consumir CPU
-- Pelo menos 8 cruzamentos no mapa, com ruas contínuas passando por eles
-- Pelo menos uma via de mão única
-- Prevenção de deadlock (nenhuma thread pode travar esperando por outra indefinidamente)
-- Visualização em tempo real no terminal com caracteres ASCII
+---
+
+## Dependências
+
+- gcc
+- pthreads
+- Terminal com suporte a cores ANSI e pelo menos 80×30 caracteres
+
+---
+
+## Como compilar e rodar
+
+```bash
+make          # compila todos os arquivos em src/
+./simulador   # executa a simulação
+make clean    # remove arquivos compilados
+```
+
+---
 
 ## Mapa
 
-O mapa foi esboçado antes do desenvolvimento e está documentado em `docs/mapa_esboco.svg`.
+Grade de **23 linhas × 60 colunas** com 12 cruzamentos formados por 3 ruas horizontais e 4 verticais.
 
-![Esboço do mapa](docs/mapa_esboco.svg)
+```
+     col: 0         1         2         3         4         5
+          0123456789012345678901234567890123456789012345678901234567890
+  row  5: #─────────+───────────+───────────+───────────+───────────#
+  row 11: #─────────+───────────+───────────+───────────+───────────#
+  row 17: #→→→→→→→→→+→→→→→→→→→→→+→→→→→→→→→→→+→→→→→→→→→→→+→→→→→→→→→→→#
+```
 
-Layout definido: 23 linhas × 60 colunas, com 3 ruas horizontais e 4 verticais formando 12 cruzamentos. A linha 17 e a coluna 52 são vias de mão única.
+- Ruas horizontais de **mão dupla**: linhas 5 e 11
+- Rua horizontal de **mão única** (→ leste): linha 17
+- Ruas verticais de **mão dupla**: colunas 10, 22, 34 e 46
+- 12 cruzamentos nas interseções
+
+O esboço visual do mapa está em [`docs/Mapa.png`](docs/Mapa.png).
+
+---
 
 ## Estrutura do repositório
 
 ```
 include/
-  constants.h   — constantes globais acordadas pela equipe
-  types.h       — structs compartilhadas por todos os módulos
-src/            — código-fonte de cada módulo (desenvolvido individualmente)
-tests/          — testes manuais de cada módulo
-docs/           — esboços e documentação de planejamento
-Makefile        — compilação do projeto
+  constants.h       — constantes globais (dimensões, velocidades, IDs, tipos de célula)
+  types.h           — structs compartilhadas (Cell, Map, Vehicle, TrafficLight, SimClock)
+  map.h             — interface do módulo de mapa
+  clock.h           — interface do relógio global
+  vehicle.h         — interface do módulo de veículos
+  traffic_light.h   — interface dos semáforos
+  ambulance.h       — interface da ambulância
+  render.h          — interface da visualização ASCII
+src/
+  map.c             — inicialização do mapa e funções de célula
+  clock.c           — relógio global com cond_broadcast por tick
+  vehicle.c         — thread de veículo, movimento e prevenção de deadlock
+  traffic_light.c   — thread de semáforo e bloqueio por variável de condição
+  ambulance.c       — thread da ambulância com prioridade em cruzamentos
+  render.c          — visualização ASCII do estado da simulação
+  main.c            — integração de todos os módulos (em desenvolvimento)
+tests/
+  test_map.c        — imprime o mapa estático em ASCII
+  test_clock.c      — valida 10 ticks em intervalos regulares
+  test_vehicle.c    — 3 veículos por 20 ticks sem colisão
+  test_traffic_light.c — veículo bloqueia no vermelho e é acordado no verde
+  stubs/            — implementações falsas para testes isolados
+docs/
+  Mapa.png          — esboço visual do layout da malha
+Makefile
+RELATORIO.md
 ```
 
-## Como compilar e rodar
+---
 
-```bash
-make          # compila tudo que estiver em src/
-./simulador   # executa a simulação
-make clean    # remove os arquivos compilados
-```
+## Uso de Inteligência Artificial
 
-> Requer gcc e pthreads (padrão em Linux/WSL). Terminal com pelo menos 80×30 caracteres.
+Durante o desenvolvimento deste projeto, a equipe utilizou o **Claude (Anthropic)** como ferramenta auxiliar em algumas etapas do processo, como:
+
+- Apoio na divisão e organização das tarefas entre os integrantes
+- Esclarecimento de dúvidas pontuais sobre  organização do código e alguns bugs em C
+- Revisão de trechos de código durante o desenvolvimento
+- Organização deste README e do RELATORIO.md
+
+A equipe foi **autogerenciada** em todas as etapas: as decisões de arquitetura, implementação e integração foram tomadas pelos próprios integrantes. Todo o código foi escrito, revisado e validado pela equipe. A IA foi utilizada como uma ferramenta de apoio — para reduzir trabalho repetitivo, tirar dúvidas e acelerar tarefas de organização — mas **nunca como substituta do julgamento técnico da equipe**.
+
+---
 
 ## Equipe
 
-| Integrante | Responsabilidade | Branch |
-|---|---|---|
-| Carlos | _(a definir)_ | `feature/mapa-relogio` ou outra |
-| David | _(a definir)_ | `feature/veiculos` ou outra |
-| Henrique | _(a definir)_ | `feature/semaforos` ou outra |
-| Levi | _(a definir)_ | `feature/render-integracao` ou outra |
+| Integrante | Responsabilidade 
+|---|---|
+| Levi | Mapa + Relógio global + Revisão Geral|
+| Carlos | Movimento dos veículos + Prevenção de deadlock |
+| David | Semáforos de trânsito + Ambulância |
+| Henrique | Visualização ASCII + Integração + Relatório |
