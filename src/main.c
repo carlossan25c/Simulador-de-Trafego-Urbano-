@@ -33,3 +33,22 @@ static void handle_sigint(int sig)
     pthread_cond_broadcast(&g_clock.cond);
     pthread_mutex_unlock(&g_clock.mutex);
 }
+
+/* Rotas: pares {row, col} de cruzamentos a visitar em sequência circular */
+static int route_amb[]  = { 5,10,  5,22,  5,34,  5,46,
+                            11,46, 11,34, 11,22, 11,10 };
+
+static int route_v1[]   = {  5,10,  11,10, 11,22,  5,22 };
+static int route_v2[]   = {  5,22,   5,34, 11,34, 11,22 };
+static int route_v3[]   = { 11,10,  11,22, 11,34, 11,46 };
+static int route_v4[]   = {  5,46,  11,46, 11,34,  5,34 };
+static int route_v5[]   = {  5,10,   5,22,  5,34,  5,46 };
+static int route_v6[]   = { 11,22,   5,22,  5,10, 11,10 };
+static int route_v7[]   = {  5,34,  11,34, 11,46,  5,46 };
+static int route_v8[]   = { 11,46,  11,34, 11,22, 11,10 };
+static int route_v9[]   = {  5,10,  11,10, 11,46,  5,46 };
+static int route_v10[]  = {  5,22,  11,22, 11,10,  5,10 };
+static int route_v11[]  = { 11,34,   5,34,  5,22, 11,22 };
+static int route_v12[]  = {  5,46,   5,34,  5,22,  5,10 };
+static int route_v13[]  = { 11,10,  11,22, 11,34, 11,46 };
+static int route_v14[]  = {  5,34,   5,46, 11,46, 11,34 };
