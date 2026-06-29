@@ -52,3 +52,19 @@ static int route_v11[]  = { 11,34,   5,34,  5,22, 11,22 };
 static int route_v12[]  = {  5,46,   5,34,  5,22,  5,10 };
 static int route_v13[]  = { 11,10,  11,22, 11,34, 11,46 };
 static int route_v14[]  = {  5,34,   5,46, 11,46, 11,34 };
+
+static TrafficLightThreadArgs g_light_args[NUM_INTERSECTIONS];
+
+static void spawn_clock(void)
+{
+    pthread_create(&g_clock_tid, NULL, clock_thread, &g_clock);
+}
+
+static void spawn_lights(void)
+{
+    for (int i = 0; i < NUM_INTERSECTIONS; i++) {
+        g_light_args[i].light = &g_lights[i];
+        g_light_args[i].clock = &g_clock;
+        pthread_create(&g_light_tids[i], NULL, traffic_light_thread, &g_light_args[i]);
+    }
+}
