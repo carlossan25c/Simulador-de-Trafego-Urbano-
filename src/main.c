@@ -68,3 +68,63 @@ static void spawn_lights(void)
         pthread_create(&g_light_tids[i], NULL, traffic_light_thread, &g_light_args[i]);
     }
 }
+
+static VehicleThreadArgs   g_vehicle_args[NUM_VEHICLES];
+static AmbulanceThreadArgs g_amb_args;
+
+/* Tabela de configuração: { start_row, start_col, speed, route*, route_len } */
+static const struct {
+    int  row, col, speed;
+    int *route;
+    int  route_len;
+} vehicle_cfg[NUM_VEHICLES] = {
+    /* ID 0 — ambulância (posição e rota próprias) */
+    {  5,  1, SPEED_FAST,   route_amb, 16 },
+    /* ID 1–14 — veículos comuns */
+    {  5,  2, SPEED_MEDIUM, route_v1,   8 },
+    {  5,  3, SPEED_SLOW,   route_v2,   8 },
+    { 11,  2, SPEED_FAST,   route_v3,   8 },
+    {  5, 58, SPEED_MEDIUM, route_v4,   8 },
+    {  5,  4, SPEED_SLOW,   route_v5,   8 },
+    { 11,  3, SPEED_FAST,   route_v6,   8 },
+    {  5, 57, SPEED_MEDIUM, route_v7,   8 },
+    { 11, 58, SPEED_SLOW,   route_v8,   8 },
+    {  5,  5, SPEED_FAST,   route_v9,   8 },
+    {  5, 23, SPEED_MEDIUM, route_v10,  8 },
+    { 11, 35, SPEED_SLOW,   route_v11,  8 },
+    {  5, 47, SPEED_FAST,   route_v12,  8 },
+    { 11,  4, SPEED_MEDIUM, route_v13,  8 },
+    {  5, 35, SPEED_SLOW,   route_v14,  8 },
+};
+
+static void spawn_vehicles(void)
+{
+    /* Ambulância — ID 0 */
+    ambulance_init(&g_vehicles[0],
+                   vehicle_cfg[0].row, vehicle_cfg[0].col,
+                   vehicle_cfg[0].route, vehicle_cfg[0].route_len);
+    cell_occupy(&g_map, vehicle_cfg[0].row, vehicle_cfg[0].col, 0);
+
+    g_amb_args.vehicle  = &g_vehicles[0];
+    g_amb_args.map      = &g_map;
+    g_amb_args.clock    = &g_clock;
+    g_amb_args.lights   = g_lights;
+    g_amb_args.n_lights = NUM_INTERSECTIONS;
+    pthread_create(&g_vehicle_tids[0], NULL, ambulance_thread, &g_amb_args);
+
+    /* Veículos comuns — IDs 1–14 */
+    for (int i = 1; i < NUM_VEHICLES; i++) {
+        vehicle_init(&g_vehicles[i], i,
+                     vehicle_cfg[i].row, vehicle_cfg[i].col,
+                     vehicle_cfg[i].speed,
+                     vehicle_cfg[i].route, vehicle_cfg[i].route_len);
+        cell_occupy(&g_map, vehicle_cfg[i].row, vehicle_cfg[i].col, i);
+
+        g_vehicle_args[i].vehicle  = &g_vehicles[i];
+        g_vehicle_args[i].map      = &g_map;
+        g_vehicle_args[i].clock    = &g_clock;
+        g_vehicle_args[i].lights   = g_lights;
+        g_vehicle_args[i].n_lights = NUM_INTERSECTIONS;
+        pthread_create(&g_vehicle_tids[i], NULL, vehicle_thread, &g_vehicle_args[i]);
+    }
+}
