@@ -128,3 +128,53 @@ static void spawn_vehicles(void)
         pthread_create(&g_vehicle_tids[i], NULL, vehicle_thread, &g_vehicle_args[i]);
     }
 }
+
+int main(void)
+{
+    /* 1. Inicializa subsistemas */
+    render_init();
+    map_init(&g_map);
+    clock_init(&g_clock);
+    lights_init_all(g_lights, NUM_INTERSECTIONS);
+
+    /* 2. Registra handler de SIGINT */
+    signal(SIGINT, handle_sigint);
+
+    /* 3. Sobe todas as threads */
+    spawn_clock();
+    spawn_lights();
+    spawn_vehicles();
+
+    /* 4. Loop de render — roda na main até Ctrl+C */
+    long last_tick = clock_get_tick(&g_clock);
+    while (g_running) {
+        clock_wait_tick(&g_clock, last_tick);
+        if (!g_running) break;
+        last_tick = clock_get_tick(&g_clock);
+        render_frame(&g_map, g_vehicles, NUM_VEHICLES, g_lights, NUM_INTERSECTIONS, last_tick);
+    }
+
+    /* 5. Shutdown: sinaliza veículos e aguarda todas as threads */
+    for (int i = 0; i < NUM_VEHICLES; i++)
+        g_vehicles[i].active = 0;
+
+    pthread_cancel(g_clock_tid);
+    pthread_join(g_clock_tid, NULL);
+
+    for (int i = 0; i < NUM_INTERSECTIONS; i++) {
+        pthread_cancel(g_light_tids[i]);
+        pthread_join(g_light_tids[i], NULL);
+    }
+
+    for (int i = 0; i < NUM_VEHICLES; i++)
+        pthread_join(g_vehicle_tids[i], NULL);
+
+    /* 6. Libera recursos */
+    for (int i = 0; i < NUM_INTERSECTIONS; i++)
+        traffic_light_destroy(&g_lights[i]);
+    clock_destroy(&g_clock);
+    map_destroy(&g_map);
+    render_destroy();
+
+    return 0;
+}
