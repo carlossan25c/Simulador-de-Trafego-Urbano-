@@ -15,21 +15,6 @@
 #define ANSI_RED          "\033[31m"
 #define ANSI_YELLOW       "\033[33m"
 
-/* ─── Tipos de célula ─────────────────────────────────────────────────────── */
-#define CELL_WALL         0
-#define CELL_ROAD_H       1
-#define CELL_ROAD_V       2
-#define CELL_INTERSECTION 3
-#define CELL_ONE_WAY_N    4
-#define CELL_ONE_WAY_S    5
-#define CELL_ONE_WAY_E    6
-#define CELL_ONE_WAY_W    7
-
-/* ─── ID especial da ambulância ───────────────────────────────────────────── */
-#ifndef AMBULANCE_ID
-#define AMBULANCE_ID 0
-#endif
-
 /* ─── Buffer de log ───────────────────────────────────────────────────────── */
 static char     log_buf[LOG_MAX_LINES][256];
 static int      log_count = 0;
