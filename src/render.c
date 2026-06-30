@@ -148,23 +148,50 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
             switch (type) {
                 case CELL_WALL:
-                    fb_append(ANSI_GRAY);  fb_append("#");  break;
-                case CELL_ROAD_H:
-                    fb_append(ANSI_WHITE); fb_append("\xe2\x94\x80"); break; /* ─ */
-                case CELL_ROAD_V:
-                    fb_append(ANSI_WHITE); fb_append("\xe2\x94\x82"); break; /* │ */
+                    fb_append(ANSI_GRAY);
+                    fb_append("#");
+                    break;
                 case CELL_INTERSECTION:
-                    fb_append(ANSI_WHITE); fb_append("+");  break;
-                case CELL_ONE_WAY_N:
-                    fb_append(ANSI_YELLOW); fb_append("\xe2\x86\x91"); break; /* ↑ */
-                case CELL_ONE_WAY_S:
-                    fb_append(ANSI_YELLOW); fb_append("\xe2\x86\x93"); break; /* ↓ */
-                case CELL_ONE_WAY_E:
-                    fb_append(ANSI_YELLOW); fb_append("\xe2\x86\x92"); break; /* → */
-                case CELL_ONE_WAY_W:
-                    fb_append(ANSI_YELLOW); fb_append("\xe2\x86\x90"); break; /* ← */
+                    fb_append(ANSI_WHITE);
+                    fb_append("+");
+                    break;
+                case CELL_ROAD:
+                    /* O caractere/cor da via depende de direction da célula */
+                    switch (direction) {
+                        case DIR_HORIZONTAL:
+                            fb_append(ANSI_WHITE);
+                            fb_append("\xe2\x94\x80"); /* ─ UTF-8 */
+                            break;
+                        case DIR_VERTICAL:
+                            fb_append(ANSI_WHITE);
+                            fb_append("\xe2\x94\x82"); /* │ UTF-8 */
+                            break;
+                        case DIR_NORTH:
+                            fb_append(ANSI_YELLOW);
+                            fb_append("\xe2\x86\x91"); /* ↑ UTF-8 */
+                            break;
+                        case DIR_SOUTH:
+                            fb_append(ANSI_YELLOW);
+                            fb_append("\xe2\x86\x93"); /* ↓ UTF-8 */
+                            break;
+                        case DIR_EAST:
+                            fb_append(ANSI_YELLOW);
+                            fb_append("\xe2\x86\x92"); /* → UTF-8 */
+                            break;
+                        case DIR_WEST:
+                            fb_append(ANSI_YELLOW);
+                            fb_append("\xe2\x86\x90"); /* ← UTF-8 */
+                            break;
+                        default:
+                            fb_append(ANSI_WHITE);
+                            fb_append("\xe2\x94\x80"); /* ─ default */
+                            break;
+                    }
+                    break;
                 default:
-                    fb_append(ANSI_GRAY);  fb_append(" ");  break;
+                    fb_append(ANSI_GRAY);
+                    fb_append(" ");
+                    break;
             }
             fb_append(ANSI_RESET);
         }
