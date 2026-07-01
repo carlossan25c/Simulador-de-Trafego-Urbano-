@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "types.h"
+#include "render.h"
 #include "constants.h"
 #include "vehicle.h"
 #include "traffic_light.h"
@@ -45,9 +46,14 @@ void ambulance_init(Vehicle *amb, int start_row, int start_col, int *route, int 
 void ambulance_request_priority(TrafficLight *tl, int dir, int tick, int amb_row, int amb_col)
 {
     traffic_light_force_green(tl, dir);
-    printf("[TICK %d] AMBULANCIA ID=%d solicitou prioridade no cruzamento (%d,%d) - forcou verde para %s\n",
-           tick, AMBULANCE_ID, tl->intersection_row, tl->intersection_col,
-           (dir == DIR_EAST || dir == DIR_WEST) ? "HORIZONTAL" : "VERTICAL");
+
+    char msg[128];
+    snprintf(msg, sizeof(msg),
+             "[TICK %d] AMBULANCIA: verde forcado no cruzamento (%d,%d) sentido %s",
+             tick, tl->intersection_row, tl->intersection_col,
+             (dir == DIR_EAST || dir == DIR_WEST) ? "HORIZONTAL" : "VERTICAL");
+    render_log(msg);
+
     (void)amb_row;
     (void)amb_col;
 }
