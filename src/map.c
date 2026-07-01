@@ -2,19 +2,22 @@
 #include "map.h"
 #include "constants.h"
 
-/* Layout do mapa — linhas e colunas das vias */
-static const int H_ROWS[]  = {5, 11, 17};   /* ruas horizontais */
-static const int V_COLS[]  = {10, 22, 34, 46}; /* ruas verticais */
-#define N_H_ROWS 3
-#define N_V_COLS 4
-#define H_ONE_WAY_ROW 17  /* linha 17: mão única → leste */
+/* Faixas horizontais: eastbound_row e westbound_row (-1 = mão única) */
+static const int H_EAST_ROWS[] = { H1_EAST, H2_EAST, H3_EAST };
+static const int H_WEST_ROWS[] = { H1_WEST, H2_WEST, -1 };
+#define N_H_STREETS 3
+
+/* Faixas verticais: southbound_col e northbound_col */
+static const int V_SOUTH_COLS[] = { V1_SOUTH, V2_SOUTH, V3_SOUTH, V4_SOUTH };
+static const int V_NORTH_COLS[] = { V1_NORTH, V2_NORTH, V3_NORTH, V4_NORTH };
+#define N_V_STREETS 4
 
 void map_init(Map *map)
 {
     map->rows = MAP_ROWS;
     map->cols = MAP_COLS;
 
-    /* 1. Inicializa todas as células como parede */
+    /* 1. Todas as células iniciam como parede */
     for (int r = 0; r < MAP_ROWS; r++) {
         for (int c = 0; c < MAP_COLS; c++) {
             Cell *cell    = &map->grid[r][c];
@@ -27,29 +30,50 @@ void map_init(Map *map)
         }
     }
 
-    /* 2. Ruas horizontais */
-    for (int i = 0; i < N_H_ROWS; i++) {
-        int r  = H_ROWS[i];
-        int dir = (r == H_ONE_WAY_ROW) ? DIR_EAST : DIR_HORIZONTAL;
+    /* 2. Faixas horizontais (cols 1..MAP_COLS-2 para deixar bordas como parede) */
+    for (int i = 0; i < N_H_STREETS; i++) {
+        int er = H_EAST_ROWS[i];
+        int wr = H_WEST_ROWS[i];
         for (int c = 1; c < MAP_COLS - 1; c++) {
-            map->grid[r][c].type      = CELL_ROAD;
-            map->grid[r][c].direction = dir;
+            map->grid[er][c].type      = CELL_ROAD;
+            map->grid[er][c].direction = DIR_EAST;
+        }
+        if (wr >= 0) {
+            for (int c = 1; c < MAP_COLS - 1; c++) {
+                map->grid[wr][c].type      = CELL_ROAD;
+                map->grid[wr][c].direction = DIR_WEST;
+            }
         }
     }
 
-    /* 3. Ruas verticais */
-    for (int j = 0; j < N_V_COLS; j++) {
-        int col = V_COLS[j];
+    /* 3. Faixas verticais (rows 1..MAP_ROWS-2) */
+    for (int j = 0; j < N_V_STREETS; j++) {
+        int sc = V_SOUTH_COLS[j];
+        int nc = V_NORTH_COLS[j];
         for (int r = 1; r < MAP_ROWS - 1; r++) {
-            map->grid[r][col].type      = CELL_ROAD;
-            map->grid[r][col].direction = DIR_VERTICAL;
+            map->grid[r][sc].type      = CELL_ROAD;
+            map->grid[r][sc].direction = DIR_SOUTH;
+            map->grid[r][nc].type      = CELL_ROAD;
+            map->grid[r][nc].direction = DIR_NORTH;
         }
     }
 
-    /* 4. Cruzamentos — onde horizontal encontra vertical */
-    for (int i = 0; i < N_H_ROWS; i++) {
-        for (int j = 0; j < N_V_COLS; j++) {
-            map->grid[H_ROWS[i]][V_COLS[j]].type = CELL_INTERSECTION;
+    /* 4. Cruzamentos: onde horizontal encontra vertical
+     *    Mão dupla × mão dupla → bloco 2×2
+     *    Mão única × mão dupla → bloco 1×2 */
+    for (int i = 0; i < N_H_STREETS; i++) {
+        for (int j = 0; j < N_V_STREETS; j++) {
+            int er = H_EAST_ROWS[i];
+            int wr = H_WEST_ROWS[i];
+            int sc = V_SOUTH_COLS[j];
+            int nc = V_NORTH_COLS[j];
+
+            map->grid[er][sc].type = CELL_INTERSECTION;
+            map->grid[er][nc].type = CELL_INTERSECTION;
+            if (wr >= 0) {
+                map->grid[wr][sc].type = CELL_INTERSECTION;
+                map->grid[wr][nc].type = CELL_INTERSECTION;
+            }
         }
     }
 }

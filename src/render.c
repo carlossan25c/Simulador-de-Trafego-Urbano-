@@ -157,28 +157,20 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
                 case CELL_ROAD:
                     /* O caractere/cor da via depende de direction da célula */
                     switch (direction) {
-                        case DIR_HORIZONTAL:
-                            fb_append(ANSI_WHITE);
-                            fb_append("-");
-                            break;
-                        case DIR_VERTICAL:
-                            fb_append(ANSI_WHITE);
-                            fb_append("|");
-                            break;
                         case DIR_NORTH:
-                            fb_append(ANSI_YELLOW);
+                            fb_append(ANSI_WHITE);
                             fb_append("^");
                             break;
                         case DIR_SOUTH:
-                            fb_append(ANSI_YELLOW);
+                            fb_append(ANSI_WHITE);
                             fb_append("v");
                             break;
                         case DIR_EAST:
-                            fb_append(ANSI_YELLOW);
+                            fb_append(ANSI_WHITE);
                             fb_append(">");
                             break;
                         case DIR_WEST:
-                            fb_append(ANSI_YELLOW);
+                            fb_append(ANSI_WHITE);
                             fb_append("<");
                             break;
                         default:
@@ -223,8 +215,8 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
     fb_append("  ");
     fb_append(ANSI_GRAY);      fb_append("  parede  ");
-    fb_append(ANSI_WHITE);     fb_append("-| via  + cruzamento  ");
-    fb_append(ANSI_YELLOW);    fb_append(">^ mao unica  ");
+    fb_append(ANSI_WHITE);     fb_append("> < ^ v via  + cruzamento  ");
+    fb_append(ANSI_YELLOW);    fb_append("");
     fb_append(ANSI_CYAN);      fb_append("0-9 carro  ");
     fb_append(ANSI_RED_BRIGHT);fb_append("A ambulancia  ");
     fb_append(ANSI_GREEN);     fb_append("G verde  ");
