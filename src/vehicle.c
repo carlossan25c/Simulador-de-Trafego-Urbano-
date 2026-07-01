@@ -251,9 +251,11 @@ void *vehicle_thread(void *arg)
             cell_unlock(map, nr, nc);
 
             v->stuck_ticks++;
-            /* Só muda direção se estiver preso num cruzamento */
-            if (v->stuck_ticks >= MAX_STUCK_TICKS && cur_type == CELL_INTERSECTION) {
-                v->direction = random_valid_dir(v, map, 0);
+            if (v->stuck_ticks >= MAX_STUCK_TICKS) {
+                if (cur_type == CELL_INTERSECTION)
+                    v->direction = random_valid_dir(v, map, 0);
+                else
+                    vehicle_respawn(v, map);  /* fila em rua: sai do mapa */
                 v->stuck_ticks = 0;
             }
             continue;

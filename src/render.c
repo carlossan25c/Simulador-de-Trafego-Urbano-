@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include "render.h"
@@ -20,16 +21,26 @@ static char     log_buf[LOG_MAX_LINES][256];
 static int      log_count = 0;
 static pthread_mutex_t log_mutex;
 
-/* ─── Buffer de frame ─────────────────────────────────────────────────────── */
-static char frame_buf[8192];
-static int  frame_pos;
+/* ─── Buffer de frame dinâmico ────────────────────────────────────────────── */
+#define FRAME_BUF_INITIAL 4096
+
+static char *frame_buf  = NULL;
+static int   frame_pos  = 0;
+static int   frame_cap  = 0;
 
 static void fb_append(const char *s) {
     int len = (int)strlen(s);
-    if (frame_pos + len < (int)sizeof(frame_buf) - 1) {
-        memcpy(frame_buf + frame_pos, s, len);
-        frame_pos += len;
+    if (frame_pos + len + 1 > frame_cap) {
+        int new_cap = frame_cap * 2;
+        while (new_cap < frame_pos + len + 1)
+            new_cap *= 2;
+        char *tmp = realloc(frame_buf, new_cap);
+        if (!tmp) return;  /* sem memória: descarta este fragmento */
+        frame_buf = tmp;
+        frame_cap = new_cap;
     }
+    memcpy(frame_buf + frame_pos, s, len);
+    frame_pos += len;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -39,10 +50,16 @@ void render_init(void) {
     pthread_mutex_init(&log_mutex, NULL);
     memset(log_buf, 0, sizeof(log_buf));
     log_count = 0;
+    frame_buf = malloc(FRAME_BUF_INITIAL);
+    frame_cap = frame_buf ? FRAME_BUF_INITIAL : 0;
+    frame_pos = 0;
 }
 
 void render_destroy(void) {
     pthread_mutex_destroy(&log_mutex);
+    free(frame_buf);
+    frame_buf = NULL;
+    frame_cap = 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -98,7 +115,6 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
     char tmp[64];
 
     frame_pos = 0;
-    memset(frame_buf, 0, sizeof(frame_buf));
 
     /* Limpa terminal sem piscar */
     fb_append("\033[H\033[J");

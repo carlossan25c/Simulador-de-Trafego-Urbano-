@@ -16,7 +16,8 @@ void traffic_light_init(TrafficLight *tl, int id, int row, int col, int green_du
     tl->state_vertical    = LIGHT_RED;
     tl->green_duration    = green_dur;
     tl->red_duration      = red_dur;
-    tl->elapsed_ticks     = 0;
+    tl->elapsed_ticks        = 0;
+    tl->priority_hold_ticks  = 0;
     pthread_mutex_init(&tl->mutex, NULL);
     pthread_cond_init(&tl->cond, NULL);
 }
@@ -34,13 +35,18 @@ void *traffic_light_thread(void *arg)
         last_tick = clock_get_tick(clk);
 
         pthread_mutex_lock(&tl->mutex);
+
+        /* Prioridade ativa: decrementa hold e não troca de fase */
+        if (tl->priority_hold_ticks > 0) {
+            tl->priority_hold_ticks--;
+            pthread_mutex_unlock(&tl->mutex);
+            continue;
+        }
+
         tl->elapsed_ticks++;
 
-        int current_duration;
-        if (tl->state_horizontal == LIGHT_GREEN)
-            current_duration = tl->green_duration;
-        else
-            current_duration = tl->red_duration;
+        int current_duration = (tl->state_horizontal == LIGHT_GREEN)
+                               ? tl->green_duration : tl->red_duration;
 
         if (tl->elapsed_ticks >= current_duration) {
             tl->elapsed_ticks = 0;
@@ -97,7 +103,8 @@ void traffic_light_force_green(TrafficLight *tl, int dir)
         tl->state_vertical   = LIGHT_GREEN;
         tl->state_horizontal = LIGHT_RED;
     }
-    tl->elapsed_ticks = 0;
+    tl->elapsed_ticks       = 0;
+    tl->priority_hold_ticks = AMBULANCE_PRIORITY_HOLD;
     pthread_cond_broadcast(&tl->cond);
     pthread_mutex_unlock(&tl->mutex);
 }
