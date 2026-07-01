@@ -105,9 +105,9 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
     /* Cabeçalho */
     fb_append(ANSI_WHITE);
-    fb_append("╔══════════════════════════════════════════════════════════╗\n");
-    fb_append("║         SIMULADOR DE TRÁFEGO URBANO — SO/Pthreads       ║\n");
-    fb_append("╚══════════════════════════════════════════════════════════╝\n");
+    fb_append("+----------------------------------------------------------+\n");
+    fb_append("|       SIMULADOR DE TRAFEGO URBANO - SO/Pthreads          |\n");
+    fb_append("+----------------------------------------------------------+\n");
     fb_append(ANSI_RESET);
 
     /* Mapa célula por célula */
@@ -160,31 +160,31 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
                     switch (direction) {
                         case DIR_HORIZONTAL:
                             fb_append(ANSI_WHITE);
-                            fb_append("\xe2\x94\x80"); /* ─ UTF-8 */
+                            fb_append("-");
                             break;
                         case DIR_VERTICAL:
                             fb_append(ANSI_WHITE);
-                            fb_append("\xe2\x94\x82"); /* │ UTF-8 */
+                            fb_append("|");
                             break;
                         case DIR_NORTH:
                             fb_append(ANSI_YELLOW);
-                            fb_append("\xe2\x86\x91"); /* ↑ UTF-8 */
+                            fb_append("^");
                             break;
                         case DIR_SOUTH:
                             fb_append(ANSI_YELLOW);
-                            fb_append("\xe2\x86\x93"); /* ↓ UTF-8 */
+                            fb_append("v");
                             break;
                         case DIR_EAST:
                             fb_append(ANSI_YELLOW);
-                            fb_append("\xe2\x86\x92"); /* → UTF-8 */
+                            fb_append(">");
                             break;
                         case DIR_WEST:
                             fb_append(ANSI_YELLOW);
-                            fb_append("\xe2\x86\x90"); /* ← UTF-8 */
+                            fb_append("<");
                             break;
                         default:
                             fb_append(ANSI_WHITE);
-                            fb_append("\xe2\x94\x80"); /* ─ default */
+                            fb_append("-");
                             break;
                     }
                     break;
@@ -200,16 +200,16 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
     /* Legenda */
     fb_append(ANSI_WHITE);
-    fb_append("──────────────────────────────────────────────────────────\n");
+    fb_append("----------------------------------------------------------\n");
 
     int ativos = 0;
     for (int i = 0; i < n_vehicles; i++)
         if (vehicles[i].active) ativos++;
 
-    snprintf(tmp, sizeof(tmp), "  Tick: %ld   |   Veículos ativos: %d/%d\n", tick, ativos, n_vehicles);
+    snprintf(tmp, sizeof(tmp), "  Tick: %ld   |   Veiculos ativos: %d/%d\n", tick, ativos, n_vehicles);
     fb_append(tmp);
 
-    fb_append("  Semáforos: ");
+    fb_append("  Semaforos: ");
     for (int i = 0; i < n_lights; i++) {
         pthread_mutex_lock(&lights[i].mutex);
         int sh = lights[i].state_horizontal;
@@ -224,16 +224,16 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
     fb_append("  ");
     fb_append(ANSI_GRAY);      fb_append("# parede  ");
-    fb_append(ANSI_WHITE);     fb_append("─│ via  + cruzamento  ");
-    fb_append(ANSI_YELLOW);    fb_append("→↑ mão única  ");
+    fb_append(ANSI_WHITE);     fb_append("-| via  + cruzamento  ");
+    fb_append(ANSI_YELLOW);    fb_append(">^ mao unica  ");
     fb_append(ANSI_CYAN);      fb_append("0-9 carro  ");
-    fb_append(ANSI_RED_BRIGHT);fb_append("A ambulância  ");
+    fb_append(ANSI_RED_BRIGHT);fb_append("A ambulancia  ");
     fb_append(ANSI_GREEN);     fb_append("G verde  ");
     fb_append(ANSI_RED);       fb_append("R vermelho");
     fb_append(ANSI_RESET);
     fb_append("\n");
 
-    fb_append("──────────────────────────────────────────────────────────\n");
+    fb_append("----------------------------------------------------------\n");
     fb_append(ANSI_RESET);
 
     /* Log de eventos */
