@@ -23,7 +23,7 @@ static void print_map(Map *map)
                     break;
                 case CELL_WALL:
                 default:
-                    printf("#");
+                    printf(" ");
                     break;
             }
         }

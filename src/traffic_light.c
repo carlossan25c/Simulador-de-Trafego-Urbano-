@@ -111,8 +111,8 @@ void traffic_light_destroy(TrafficLight *tl)
 int lights_init_all(TrafficLight lights[], int max_lights)
 {
     static const int intersections[][2] = {
-        { 3, 10}, { 3, 25}, { 3, 40}, { 3, 50},
-        {11, 10}, {11, 25}, {11, 40}, {11, 50}
+        { 5, 10}, { 5, 22}, { 5, 34}, { 5, 46},
+        {11, 10}, {11, 22}, {11, 34}, {11, 46}
     };
 
     int n = sizeof(intersections) / sizeof(intersections[0]);

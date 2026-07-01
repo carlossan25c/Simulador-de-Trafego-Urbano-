@@ -148,8 +148,7 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
 
             switch (type) {
                 case CELL_WALL:
-                    fb_append(ANSI_GRAY);
-                    fb_append("#");
+                    fb_append(" ");
                     break;
                 case CELL_INTERSECTION:
                     fb_append(ANSI_WHITE);
@@ -223,7 +222,7 @@ void render_frame(Map *map, Vehicle *vehicles, int n_vehicles,
     fb_append("\n");
 
     fb_append("  ");
-    fb_append(ANSI_GRAY);      fb_append("# parede  ");
+    fb_append(ANSI_GRAY);      fb_append("  parede  ");
     fb_append(ANSI_WHITE);     fb_append("-| via  + cruzamento  ");
     fb_append(ANSI_YELLOW);    fb_append(">^ mao unica  ");
     fb_append(ANSI_CYAN);      fb_append("0-9 carro  ");
