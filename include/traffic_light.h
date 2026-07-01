@@ -14,7 +14,9 @@
 #define DEFAULT_GREEN_TICKS  8
 #define DEFAULT_RED_TICKS    8
 
-#define AMBULANCE_PRIORITY_DISTANCE 2
+#define AMBULANCE_PRIORITY_DISTANCE  2
+/* ticks que o semáforo permanece bloqueado após force_green da ambulância */
+#define AMBULANCE_PRIORITY_HOLD     6
 
 typedef struct {
     TrafficLight *light;
