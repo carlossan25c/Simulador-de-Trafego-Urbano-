@@ -29,7 +29,17 @@ static void ambulance_update_direction_to_target(Vehicle *v)
 
 void ambulance_init(Vehicle *amb, int start_row, int start_col, int *route, int route_len)
 {
-    vehicle_init(amb, AMBULANCE_ID, start_row, start_col, SPEED_FAST, route, route_len);
+    amb->id            = AMBULANCE_ID;
+    amb->row           = start_row;
+    amb->col           = start_col;
+    amb->direction     = DIR_EAST;
+    amb->speed         = SPEED_FAST;
+    amb->ticks_to_move = SPEED_FAST;
+    amb->active        = 1;
+    amb->route         = route;
+    amb->route_len     = route_len;
+    amb->route_idx     = 0;
+    amb->stuck_ticks   = 0;
 }
 
 void ambulance_request_priority(TrafficLight *tl, int dir, int tick, int amb_row, int amb_col)
@@ -45,8 +55,10 @@ void ambulance_request_priority(TrafficLight *tl, int dir, int tick, int amb_row
 static TrafficLight *find_light_at(TrafficLight *lights, int n_lights, int row, int col)
 {
     for (int i = 0; i < n_lights; i++) {
-        if (lights[i].intersection_row == row &&
-            lights[i].intersection_col == col)
+        int lr = lights[i].intersection_row;
+        int lc = lights[i].intersection_col;
+        /* Cruzamentos são blocos 2×2: rows lr,lr+1 e cols lc,lc+1 */
+        if ((row == lr || row == lr + 1) && (col == lc || col == lc + 1))
             return &lights[i];
     }
     return NULL;
@@ -103,14 +115,27 @@ void *ambulance_thread(void *arg)
             continue;
         v->ticks_to_move = v->speed;
 
+        ambulance_update_direction_to_target(v);
         int nr, nc;
         if (get_next_cell(v, &nr, &nc) != 0) {
             continue;
         }
 
-        TrafficLight *tl_ahead = find_light_ahead(lights, n_lights, v->row, v->col, v->direction, AMBULANCE_PRIORITY_DISTANCE);
-        if (tl_ahead != NULL) {
-            ambulance_request_priority(tl_ahead, v->direction, (int)last_tick, v->row, v->col);
+        /*
+         * Força verde apenas se a próxima célula está livre.
+         * Se há um veículo na interseção esperando a direção perpendicular,
+         * forçar verde na direção da ambulância reseta elapsed_ticks e impede
+         * esse veículo de receber o verde de que precisa (livelock).
+         */
+        cell_lock(map, nr, nc);
+        int next_free = cell_is_free(map, nr, nc);
+        cell_unlock(map, nr, nc);
+
+        if (next_free) {
+            TrafficLight *tl_ahead = find_light_ahead(lights, n_lights, v->row, v->col, v->direction, AMBULANCE_PRIORITY_DISTANCE);
+            if (tl_ahead != NULL) {
+                ambulance_request_priority(tl_ahead, v->direction, (int)last_tick, v->row, v->col);
+            }
         }
 
         TrafficLight *tl = find_light_at(lights, n_lights, nr, nc);

@@ -12,18 +12,17 @@ static void print_map(Map *map)
                     printf("+");
                     break;
                 case CELL_ROAD:
-                    if (cell->direction == DIR_HORIZONTAL)
-                        printf("-");
-                    else if (cell->direction == DIR_VERTICAL)
-                        printf("|");
-                    else if (cell->direction == DIR_EAST)
-                        printf(">");
-                    else
-                        printf(".");
+                    switch (cell->direction) {
+                        case DIR_EAST:  printf(">"); break;
+                        case DIR_WEST:  printf("<"); break;
+                        case DIR_SOUTH: printf("v"); break;
+                        case DIR_NORTH: printf("^"); break;
+                        default:        printf("."); break;
+                    }
                     break;
                 case CELL_WALL:
                 default:
-                    printf("#");
+                    printf(" ");
                     break;
             }
         }

@@ -110,17 +110,22 @@ void traffic_light_destroy(TrafficLight *tl)
 
 int lights_init_all(TrafficLight lights[], int max_lights)
 {
+    /* Posicionados no canto NW (eastbound_row, southbound_col) de cada bloco 2x2.
+     * H3 (mão única) não recebe semáforo. */
     static const int intersections[][2] = {
-        { 3, 10}, { 3, 25}, { 3, 40}, { 3, 50},
-        {11, 10}, {11, 25}, {11, 40}, {11, 50}
+        { H1_EAST, V1_SOUTH }, { H1_EAST, V2_SOUTH },
+        { H1_EAST, V3_SOUTH }, { H1_EAST, V4_SOUTH },
+        { H2_EAST, V1_SOUTH }, { H2_EAST, V2_SOUTH },
+        { H2_EAST, V3_SOUTH }, { H2_EAST, V4_SOUTH },
     };
 
     int n = sizeof(intersections) / sizeof(intersections[0]);
     if (n > max_lights)
         n = max_lights;
 
-    for (int i = 0; i < n; i++) {
-        traffic_light_init(&lights[i], i, intersections[i][0], intersections[i][1], DEFAULT_GREEN_TICKS, DEFAULT_RED_TICKS);
-    }
+    for (int i = 0; i < n; i++)
+        traffic_light_init(&lights[i], i,
+                           intersections[i][0], intersections[i][1],
+                           DEFAULT_GREEN_TICKS, DEFAULT_RED_TICKS);
     return n;
 }

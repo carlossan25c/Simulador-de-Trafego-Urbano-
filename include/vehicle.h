@@ -14,9 +14,9 @@ typedef struct {
     int           n_lights;
 } VehicleThreadArgs;
 
-/* Inicializa veículo com id, posição, velocidade e rota */
+/* Inicializa veículo com posição, velocidade e direção inicial */
 void vehicle_init(Vehicle *v, int id, int start_row, int start_col,
-                  int speed, int *route, int route_len);
+                  int speed, int direction);
 
 /* Função da thread do veículo (assinatura obrigatória para pthread_create) */
 void *vehicle_thread(void *arg);

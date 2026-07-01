@@ -29,9 +29,10 @@ typedef struct {
     int speed;          /* velocidade: SPEED_FAST / MEDIUM / SLOW */
     int ticks_to_move;  /* contador regressivo até o próximo movimento */
     int active;         /* 1 = em movimento, 0 = parado */
-    int *route;         /* lista de waypoints (cruzamentos a visitar) */
+    int *route;         /* rota fixa (somente ambulância) */
     int  route_len;
     int  route_idx;
+    int  stuck_ticks;   /* ticks consecutivos sem conseguir mover */
 } Vehicle;
 
 /* Semáforo de trânsito */
