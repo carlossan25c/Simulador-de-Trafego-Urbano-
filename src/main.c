@@ -34,24 +34,23 @@ static void handle_sigint(int sig)
     pthread_mutex_unlock(&g_clock.mutex);
 }
 
-/* Rotas: pares {row, col} de cruzamentos a visitar em sequência circular */
-static int route_amb[]  = { 5,10,  5,22,  5,34,  5,46,
+/*
+ * Todos os loops circulam no mesmo sentido horário:
+ *   row5 → leste | col → sul | row11 → oeste | col → norte
+ * Isso elimina tráfego oposto nas vias e previne deadlock de ocupação.
+ *
+ * route_A: loop pequeno esquerdo   (5,10)→(5,22)→(11,22)→(11,10)
+ * route_B: loop médio              (5,22)→(5,46)→(11,46)→(11,22)
+ * route_C: loop grande             (5,10)→(5,46)→(11,46)→(11,10)
+ * route_D: loop pequeno direito    (5,34)→(5,46)→(11,46)→(11,34)
+ */
+static int route_amb[] = {  5,10,  5,22,  5,34,  5,46,
                             11,46, 11,34, 11,22, 11,10 };
 
-static int route_v1[]   = {  5,10,  11,10, 11,22,  5,22 };
-static int route_v2[]   = {  5,22,   5,34, 11,34, 11,22 };
-static int route_v3[]   = { 11,10,  11,22, 11,34, 11,46 };
-static int route_v4[]   = {  5,46,  11,46, 11,34,  5,34 };
-static int route_v5[]   = {  5,10,   5,22,  5,34,  5,46 };
-static int route_v6[]   = { 11,22,   5,22,  5,10, 11,10 };
-static int route_v7[]   = {  5,34,  11,34, 11,46,  5,46 };
-static int route_v8[]   = { 11,46,  11,34, 11,22, 11,10 };
-static int route_v9[]   = {  5,10,  11,10, 11,46,  5,46 };
-static int route_v10[]  = {  5,22,  11,22, 11,10,  5,10 };
-static int route_v11[]  = { 11,34,   5,34,  5,22, 11,22 };
-static int route_v12[]  = {  5,46,   5,34,  5,22,  5,10 };
-static int route_v13[]  = { 11,10,  11,22, 11,34, 11,46 };
-static int route_v14[]  = {  5,34,   5,46, 11,46, 11,34 };
+static int route_A[]   = {  5,10,  5,22, 11,22, 11,10 };
+static int route_B[]   = {  5,22,  5,46, 11,46, 11,22 };
+static int route_C[]   = {  5,10,  5,46, 11,46, 11,10 };
+static int route_D[]   = {  5,34,  5,46, 11,46, 11,34 };
 
 static TrafficLightThreadArgs g_light_args[NUM_INTERSECTIONS];
 
@@ -72,29 +71,37 @@ static void spawn_lights(void)
 static VehicleThreadArgs   g_vehicle_args[NUM_VEHICLES];
 static AmbulanceThreadArgs g_amb_args;
 
-/* Tabela de configuração: { start_row, start_col, speed, route*, route_len } */
+/*
+ * start_idx: índice inicial em route[] (múltiplo de 2).
+ * Veículos são colocados em pontos distintos do loop para distribuição imediata.
+ * row5 sempre leste, row11 sempre oeste — sem tráfego frontal.
+ */
 static const struct {
     int  row, col, speed;
     int *route;
     int  route_len;
+    int  start_idx;
 } vehicle_cfg[NUM_VEHICLES] = {
-    /* ID 0 — ambulância (posição e rota próprias) */
-    {  5,  1, SPEED_FAST,   route_amb, 16 },
-    /* ID 1–14 — veículos comuns */
-    {  5,  2, SPEED_MEDIUM, route_v1,   8 },
-    {  5,  3, SPEED_SLOW,   route_v2,   8 },
-    { 11,  2, SPEED_FAST,   route_v3,   8 },
-    {  5, 58, SPEED_MEDIUM, route_v4,   8 },
-    {  5,  4, SPEED_SLOW,   route_v5,   8 },
-    { 11,  3, SPEED_FAST,   route_v6,   8 },
-    {  5, 57, SPEED_MEDIUM, route_v7,   8 },
-    { 11, 58, SPEED_SLOW,   route_v8,   8 },
-    {  5,  5, SPEED_FAST,   route_v9,   8 },
-    {  5, 23, SPEED_MEDIUM, route_v10,  8 },
-    { 11, 35, SPEED_SLOW,   route_v11,  8 },
-    {  5, 47, SPEED_FAST,   route_v12,  8 },
-    { 11,  4, SPEED_MEDIUM, route_v13,  8 },
-    {  5, 35, SPEED_SLOW,   route_v14,  8 },
+    /* ID 0 — ambulância: perimetro completo */
+    {  5,  1, SPEED_FAST,   route_amb, 16, 0 },
+    /* Loop A (pequeno esq): 3 veículos espalhados pelo circuito */
+    {  5,  4, SPEED_MEDIUM, route_A, 8, 0 },  /*  1: row5, → (5,10)  */
+    { 11, 17, SPEED_SLOW,   route_A, 8, 6 },  /*  2: row11, → (11,10) */
+    {  7, 22, SPEED_FAST,   route_A, 8, 4 },  /*  3: col22, ↓ (11,22) */
+    /* Loop B (médio): 3 veículos */
+    {  5, 27, SPEED_SLOW,   route_B, 8, 2 },  /*  4: row5, → (5,46)  */
+    {  7, 46, SPEED_FAST,   route_B, 8, 4 },  /*  5: col46, ↓ (11,46) */
+    { 11, 33, SPEED_MEDIUM, route_B, 8, 6 },  /*  6: row11, → (11,22) */
+    /* Loop C (grande): 4 veículos */
+    {  5,  8, SPEED_FAST,   route_C, 8, 0 },  /*  7: row5, → (5,10)  */
+    {  5, 34, SPEED_SLOW,   route_C, 8, 2 },  /*  8: row5, → (5,46)  */
+    { 11, 50, SPEED_MEDIUM, route_C, 8, 6 },  /*  9: row11, → (11,10) */
+    { 11, 27, SPEED_FAST,   route_C, 8, 6 },  /* 10: row11, → (11,10) */
+    /* Loop D (pequeno dir): 4 veículos */
+    {  5, 29, SPEED_MEDIUM, route_D, 8, 0 },  /* 11: row5, → (5,34)  */
+    {  5, 41, SPEED_SLOW,   route_D, 8, 2 },  /* 12: row5, → (5,46)  */
+    { 10, 46, SPEED_FAST,   route_D, 8, 4 },  /* 13: col46, ↓ (11,46) */
+    { 11, 40, SPEED_MEDIUM, route_D, 8, 6 },  /* 14: row11, → (11,34) */
 };
 
 static void spawn_vehicles(void)
@@ -103,6 +110,7 @@ static void spawn_vehicles(void)
     ambulance_init(&g_vehicles[0],
                    vehicle_cfg[0].row, vehicle_cfg[0].col,
                    vehicle_cfg[0].route, vehicle_cfg[0].route_len);
+    g_vehicles[0].route_idx = vehicle_cfg[0].start_idx;
     cell_occupy(&g_map, vehicle_cfg[0].row, vehicle_cfg[0].col, 0);
 
     g_amb_args.vehicle  = &g_vehicles[0];
@@ -118,6 +126,7 @@ static void spawn_vehicles(void)
                      vehicle_cfg[i].row, vehicle_cfg[i].col,
                      vehicle_cfg[i].speed,
                      vehicle_cfg[i].route, vehicle_cfg[i].route_len);
+        g_vehicles[i].route_idx = vehicle_cfg[i].start_idx;
         cell_occupy(&g_map, vehicle_cfg[i].row, vehicle_cfg[i].col, i);
 
         g_vehicle_args[i].vehicle  = &g_vehicles[i];

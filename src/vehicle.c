@@ -11,8 +11,6 @@
  * Funções auxiliares internas
  * -------------------------------------------------------------------------- */
 
-/* Procura o semáforo cuja posição de cruzamento coincide com (row, col).
- * Retorna ponteiro para o TrafficLight ou NULL se não houver semáforo ali. */
 static TrafficLight *find_light_at(TrafficLight *lights, int n_lights,
                                    int row, int col)
 {
@@ -22,6 +20,25 @@ static TrafficLight *find_light_at(TrafficLight *lights, int n_lights,
             return &lights[i];
     }
     return NULL;
+}
+
+/* Atualiza v->direction em direção ao próximo waypoint da rota.
+ * Estratégia: primeiro alinha a coluna (move horizontal), depois a linha
+ * (move vertical). Isso garante que o veículo use os cruzamentos corretos. */
+static void update_direction(Vehicle *v)
+{
+    if (v->route == NULL || v->route_len == 0) return;
+
+    int target_row = v->route[v->route_idx];
+    int target_col = v->route[v->route_idx + 1];
+    int dr = target_row - v->row;
+    int dc = target_col - v->col;
+
+    if (v->col == target_col && dr != 0) {
+        v->direction = (dr > 0) ? DIR_SOUTH : DIR_NORTH;
+    } else if (dc != 0) {
+        v->direction = (dc > 0) ? DIR_EAST : DIR_WEST;
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -34,13 +51,14 @@ void vehicle_init(Vehicle *v, int id, int start_row, int start_col,
     v->id            = id;
     v->row           = start_row;
     v->col           = start_col;
-    v->direction     = DIR_EAST;   /* direção inicial padrão */
+    v->direction     = DIR_EAST;
     v->speed         = speed;
-    v->ticks_to_move = speed;      /* contador começa cheio */
+    v->ticks_to_move = speed;
     v->active        = 1;
     v->route         = route;
     v->route_len     = route_len;
     v->route_idx     = 0;
+    update_direction(v);
 }
 
 int vehicle_is_ambulance(Vehicle *v)
@@ -90,7 +108,8 @@ void *vehicle_thread(void *arg)
             continue;
         v->ticks_to_move = v->speed;   /* reinicia contador */
 
-        /* 3. Calcula próxima célula */
+        /* 3. Atualiza direção em direção ao próximo waypoint e calcula célula */
+        update_direction(v);
         int nr, nc;
         if (get_next_cell(v, &nr, &nc) != 0) {
             /* Fora do mapa ou direção inválida — aguarda próximo tick */
@@ -140,6 +159,7 @@ void *vehicle_thread(void *arg)
             if (v->row == v->route[v->route_idx] &&
                 v->col == v->route[v->route_idx + 1]) {
                 v->route_idx = (v->route_idx + 2) % v->route_len;
+                update_direction(v);
             }
         }
     }
